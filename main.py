@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import messagebox
 from datetime import datetime
 import time
@@ -14,14 +15,14 @@ class AlarmApp:
         self.alarm_widget_setter(root)
         self.timer_widget_setter(root)
         self.url_widget_setter(root)
+        self.root.geometry("500x800") 
         
         #showing the current time
         self.current_time_label = tk.Label(root, text="", font=("Helvetica", 14))
         self.current_time_label.pack(pady=10)
 
         #showing the log
-        self.alarm_listbox = tk.Listbox(root, font=("Helvetica", 14), width=50)
-        self.alarm_listbox.pack(pady = 10)
+        self.create_widgets()
 
         #self.alarms have list of alarms and respective time
         #self.alarmtime and self.url are placeholders
@@ -31,8 +32,20 @@ class AlarmApp:
 
         self.update_time()
 
-    def set_default_url(self, url):
-        self.url_entry.insert(0, url)
+    def create_widgets(self):
+        self.style = ttk.Style()
+        self.style.configure('TButton', font=('Helvetica', 12, 'bold'), padding=10, background='red', foreground='white')
+        self.delete_button = ttk.Button(self.root, text="Delete Selected Alarm", command=self.delete_selected_alarm, style='TButton')
+        self.delete_button.pack(pady=10)
+
+        self.alarm_listbox = tk.Listbox(self.root, font=("Helvetica", 14), width=50)
+        self.alarm_listbox.pack()
+    
+        self.alarm_listbox.bind('<<ListboxSelect>>', self.on_listbox_select)
+    
+
+    # def set_default_url(self, url):
+    #     self.url_entry.insert(0, url)
 
 
     def alarm_widget_setter(self, root):
@@ -62,7 +75,7 @@ class AlarmApp:
         self.url_entry.pack(pady=10)
         self.label_url = tk.Button(root, text="Set URL", font=("Helvetica", 14), command= self.set_url)
         self.label_url.pack(pady=10)
-        self.set_default_url("https://www.google.com")
+        # self.set_default_url("https://www.google.com")
 
 
     def set_url(self):
@@ -77,20 +90,18 @@ class AlarmApp:
 
     #function called when you press set_timer
     def set_timer(self):
-        try:
-            minutes = int(self.timer_entry.get())
-            alarm_time = (datetime.now() + timedelta(minutes=minutes)).time()
-            alarm_time = alarm_time.strftime("%H:%M")
-            if self.url == None:
-                messagebox.showerror("Invalid Input", "Please enter your URL")
-                return
-            url = self.url
-            self.alarm_set(alarm_time, url)
-            messagebox.showinfo("Timer Set", f"Alarm set for {alarm_time} with video {url} in {minutes} minutes")
-
-        except ValueError:
-            messagebox.showerror("Invalid Input", "Please enter a valid number of minutes")
-
+        minutes = int(self.timer_entry.get())
+        if minutes == 0 or minutes < 0:
+                messagebox.showerror("Invalid Input", "Please enter a valid number of minutes")
+                return 
+        if self.url == None:
+            messagebox.showerror("Invalid Input", "Please enter your URL")
+            return
+        alarm_time = (datetime.now() + timedelta(minutes=minutes)).time()
+        alarm_time = alarm_time.strftime("%H:%M")
+        url = self.url
+        self.add_alarm(alarm_time, url)
+        # messagebox.showinfo("Timer Set", f"Alarm set for {alarm_time} with video {url} in {minutes} minutes")
 
     #function called when you press set_URL
     def set_alarm(self):
@@ -99,19 +110,30 @@ class AlarmApp:
             messagebox.showerror("Invalid Input", "Please enter your URL")
             return
         url = self.url
-        self.alarm_set(alarm_time, url)
+        self.add_alarm(alarm_time, url)
+
+    def delete_selected_alarm(self):
+        if self.selected_index is not None:
+            del self.alarms[self.selected_index]
+            self.update_alarm_listbox()
+        else:
+            messagebox.showerror("Error", "No alarm selected")
 
     # append alarm_listbox an alarms
-    def alarm_set(self, alarm_time, url):
+    def add_alarm(self, alarm_time, url):
         try:
-            # Check if the entered time is in the correct format
-            alarm_entry = f"{alarm_time} {url}"
-            self.alarm_listbox.insert(tk.END, alarm_entry)
-            self.alarms.append([alarm_time, url])
-            self.update_alarm_listbox()
-            self.check_alarm()
+            # Validate the entered time format
+            datetime.strptime(alarm_time, "%H:%M")
         except ValueError:
             messagebox.showerror("Invalid Time", "Please enter a valid time in HH:MM format.")
+            return
+        # Check if the entered time is in the correct format
+        alarm_entry = f"{alarm_time} {url}"
+        self.alarm_listbox.insert(tk.END, alarm_entry)
+        self.alarms.append([alarm_time, url])
+        self.alarms.sort(key=lambda x: datetime.strptime(x[0], "%H:%M"))
+        self.update_alarm_listbox()
+        self.check_alarm()
 
     
     def check_alarm(self):
@@ -137,6 +159,14 @@ class AlarmApp:
         # Create a new window
         webbrowser.open_new(video_url)
         self.update_alarm_listbox()
+    def on_listbox_select(self, event):
+        widget = event.widget
+        selection = widget.curselection()
+        if selection:
+
+            self.selected_index = selection[0]
+        else:
+            self.selected_index = None
 
 
 
@@ -144,45 +174,5 @@ if __name__ == "__main__":
     window = tk.Tk()
     app = AlarmApp(window)
     window.mainloop()
-
-
-
-# The on_listbox_select method is designed to handle the event when an item in the listbox is selected. Here's a breakdown of what each part of the method does:
-
-# Explanation of on_listbox_select
-# python
-# Copy code
-# def on_listbox_select(self, event):
-#     widget = event.widget
-#     selection = widget.curselection()
-#     if selection:
-#         self.selected_index = selection[0]
-#     else:
-#         self.selected_index = None
-# Binding the Event:
-
-# The on_listbox_select method is bound to the <<ListboxSelect>> event of the listbox, which means it gets called whenever an item in the listbox is selected.
-# This binding is done using self.alarm_listbox.bind('<<ListboxSelect>>', self.on_listbox_select).
-# Event Object:
-
-# The event parameter is an event object that gets passed to the method automatically when the event occurs.
-# It contains information about the event, including which widget triggered it.
-# Get the Widget:
-
-# widget = event.widget retrieves the widget that triggered the event. In this case, it is the listbox.
-# Get the Selected Item:
-
-# selection = widget.curselection() retrieves the current selection in the listbox.
-# curselection() returns a tuple of indices of the selected items. If no item is selected, it returns an empty tuple.
-# Check the Selection:
-
-# if selection: checks if the selection is not empty (i.e., an item is selected).
-# If an item is selected, self.selected_index = selection[0] stores the index of the selected item in the self.selected_index attribute.
-# If no item is selected, self.selected_index = None sets self.selected_index to None.
-# Summary
-# This method captures the index of the selected item in the listbox and stores it in the self.selected_index attribute. This captured index can later be used to perform operations on the selected item, such as deleting it from the list. If no item is selected, self.selected_index is set to None, ensuring that the program can handle cases where no item is selected.
-
-
-
 
 
