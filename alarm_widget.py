@@ -7,7 +7,7 @@ class AlarmWidget:
         self.app = app
         self.root = app.root
 
-        self.label = tk.Label(self.root, text="Set Alarm Time (HH:MM)", font=("Helvetica", 14))
+        self.label = tk.Label(self.root, text="Set Alarm Time in (HH:MM) format", font=("Helvetica", 14))
         self.label.pack(pady=20)
 
         self.time_entry = tk.Entry(self.root, font=("Helvetica", 14), width=10)
