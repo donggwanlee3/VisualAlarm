@@ -26,4 +26,4 @@ Follow these steps to set up the project locally:
 
 To run the main script, use the following command:
 ```bash
-python3 main.py w
+python3 main.py
