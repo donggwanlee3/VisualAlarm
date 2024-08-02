@@ -1,6 +1,6 @@
 # VisualAlarm
 
-VisualAlarm is a Python-based application that motivates you to complete tasks by playing a video you choose at a specific time. This repository contains the necessary scripts and resources to run VisualAlarm.
+VisualAlarm is a Python-based application that motivates you to complete tasks by playing a Youtube link you choose at a specific time. This repository contains the necessary scripts and resources to run VisualAlarm.
 
 ## Table of Contents
 
